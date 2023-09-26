@@ -18,7 +18,7 @@ export class DefaultController {
     try {
       const data = await this.service.findAll();
 
-      res.status(200).send({ data, message: 'success' });
+      res.status(200).send({ data, message: 'success 🤩' });
     } catch (err) {
       next(err);
     }
@@ -34,7 +34,7 @@ export class DefaultController {
 
       res
         .status(201)
-        .json({ data: createData, message: 'created successfully' });
+        .json({ data: createData, message: 'created successfully 🤩' });
     } catch (error) {
       next(error);
     }

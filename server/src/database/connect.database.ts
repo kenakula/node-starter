@@ -9,7 +9,11 @@ export const connectDatabase = async () => {
   await connect(`mongodb://mongo:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}`, {
     user: DB_USER,
     pass: DB_PASSWORD,
-  }).then(() => {
-    console.log('Connection to DB established 🤩');
-  });
+  })
+    .then(() => {
+      console.log('Connection to DB established 🤩');
+    })
+    .catch(() => {
+      console.log('Connection to DB failed 😵‍💫');
+    });
 };

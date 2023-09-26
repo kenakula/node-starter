@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { Request } from 'express';
+import process from 'node:process';
 import morgan from 'morgan';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -7,21 +8,41 @@ import swaggerJSDoc, { Options as SwaggerOptions } from 'swagger-jsdoc';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import cors from 'cors';
+import mongoSanitize from 'express-mongo-sanitize';
 import { logger, stream } from '@app/utils';
-import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@app/configs';
+import {
+  NODE_ENV,
+  PORT,
+  LOG_FORMAT,
+  ORIGIN,
+  CREDENTIALS,
+  rateLimiterConfig,
+  API_VERSION,
+  API_ROOT,
+} from '@app/configs';
 import { ErrorMiddleware } from '@app/middlewares';
-import { Route } from '@app/interfaces';
+import { IProcessError, Route } from '@app/interfaces';
 import { connectDatabase } from '@app/database/connect.database';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+import { hppOptionsConfig } from '@configs/hpp-options.config';
+import * as path from 'path';
+import { HttpException } from '@app/exceptions';
 
 export class App {
   public app: express.Application;
   public env: string;
   public port: string | number;
+  public apiVersion: string;
+  public apiRoot: string;
+  public limiter: RateLimitRequestHandler;
 
   constructor(routes: Route[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = PORT || '4000';
+    this.apiRoot = API_ROOT || '/api';
+    this.apiVersion = API_VERSION || 'v1';
+    this.limiter = rateLimit(rateLimiterConfig);
 
     this.connectToDatabase();
     this.initializeMiddlewares();
@@ -30,12 +51,20 @@ export class App {
     this.initializeErrorHandler();
   }
 
-  public listen(): void {
-    this.app.listen(this.port, () => {
+  public listen() {
+    const server = this.app.listen(this.port, () => {
       logger.info(`=================================`);
       logger.info(`======= ENV: ${this.env} =======`);
       logger.info(`🚀 App listening on the port: ${this.port}`);
       logger.info(`=================================`);
+    });
+
+    process.on('unhandledRejection', (err: IProcessError) => {
+      console.log(err.name, err.message);
+      console.log('UNHANDLED REJECTION 💥 SHUTTING DOWN...');
+      server.close(() => {
+        process.exit(1);
+      });
     });
   }
 
@@ -44,18 +73,27 @@ export class App {
   };
 
   private initializeMiddlewares() {
+    this.app.use(API_ROOT, this.limiter);
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
-    this.app.use(hpp());
+    this.app.use(hpp(hppOptionsConfig));
     this.app.use(helmet());
     this.app.use(compression());
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.json({ limit: '10kb' }));
+    this.app.use(express.urlencoded({ extended: true, limit: '1kb' }));
+    this.app.use(mongoSanitize());
+    this.app.use(express.static(path.join(__dirname, 'public')));
     this.app.use(cookieParser());
   }
 
   private initializeRoutes(routes: Route[]) {
-    routes.forEach(route => this.app.use('/', route.router));
+    routes.forEach(route =>
+      this.app.use(`${API_ROOT}/${this.apiVersion}/`, route.router),
+    );
+
+    this.app.all('*', ({ originalUrl }: Request, res, next) => {
+      next(new HttpException(404, `no [${originalUrl}] route on server`));
+    });
   }
 
   private initializeSwagger() {

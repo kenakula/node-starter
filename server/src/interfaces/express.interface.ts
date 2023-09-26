@@ -8,3 +8,8 @@ export interface IResponseBody<T> {
 export interface ICreateRequest<T> extends Request {
   body: T;
 }
+
+export interface IProcessError {
+  name: string;
+  message: string;
+}
