@@ -1,5 +1,5 @@
 import { Service } from 'typedi';
-import nodemailer, { TransportOptions } from 'nodemailer';
+import nodemailer from 'nodemailer';
 import {
   EMAIL_HOST,
   EMAIL_PASSWORD,
