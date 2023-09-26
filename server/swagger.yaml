@@ -1,0 +1,123 @@
+tags:
+  - name: default
+    description: default API
+
+paths:
+  # [GET] data
+  /default:
+    get:
+      tags:
+        - default
+      summary: Find All Data
+      responses:
+        200:
+          description: 'OK'
+        500:
+          description: 'Server Error'
+
+    # [POST] data
+    post:
+      tags:
+        - default
+      summary: Add Data
+      parameters:
+        - name: body
+          in: body
+          description: default Data
+          required: true
+          schema:
+            $ref: '#/definitions/data'
+      responses:
+        201:
+          description: 'Created'
+        400:
+          description: 'Bad Request'
+        409:
+          description: 'Conflict'
+        500:
+          description: 'Server Error'
+
+  # [GET] data/id
+  /default/{id}:
+    get:
+      tags:
+        - default
+      summary: Find Data By Id
+      parameters:
+        - name: id
+          in: path
+          description: Data Id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'OK'
+        409:
+          description: 'Conflict'
+        500:
+          description: 'Server Error'
+
+    # [PUT] data/id
+    put:
+      tags:
+        - default
+      summary: Update Data By Id
+      parameters:
+        - name: id
+          in: path
+          description: data Id
+          required: true
+          type: integer
+        - name: body
+          in: body
+          description: user Data
+          required: true
+          schema:
+            $ref: '#/definitions/data'
+      responses:
+        200:
+          description: 'OK'
+        400:
+          description: 'Bad Request'
+        409:
+          description: 'Conflict'
+        500:
+          description: 'Server Error'
+
+    # [DELETE] data/id
+    delete:
+      tags:
+        - default
+      summary: Delete Data By Id
+      parameters:
+        - name: id
+          in: path
+          description: data Id
+          required: true
+          type: integer
+      responses:
+        200:
+          description: 'OK'
+        409:
+          description: 'Conflict'
+        500:
+          description: 'Server Error'
+
+# definitions
+definitions:
+  data:
+    type: object
+    required:
+      - name
+      - isActive
+    properties:
+      name:
+        type: string
+        description: user Name
+      isActive:
+        type: boolean
+        description: user Active State
+
+schemes:
+  - https
+  - http
