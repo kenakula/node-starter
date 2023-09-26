@@ -11,6 +11,7 @@ import { logger, stream } from '@app/utils';
 import { NODE_ENV, PORT, LOG_FORMAT, ORIGIN, CREDENTIALS } from '@app/configs';
 import { ErrorMiddleware } from '@app/middlewares';
 import { Route } from '@app/interfaces';
+import { connectDatabase } from '@app/database/connect.database';
 
 export class App {
   public app: express.Application;
@@ -22,14 +23,11 @@ export class App {
     this.env = NODE_ENV || 'development';
     this.port = PORT || '4000';
 
+    this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeRoutes(routes);
     this.initializeSwagger();
     this.initializeErrorHandler();
-  }
-
-  public getServer(): express.Application {
-    return this.app;
   }
 
   public listen(): void {
@@ -40,6 +38,10 @@ export class App {
       logger.info(`=================================`);
     });
   }
+
+  public connectToDatabase = async () => {
+    await connectDatabase();
+  };
 
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));

@@ -6,21 +6,23 @@ import { HttpException } from '@app/exceptions';
 @Service()
 export class DefaultService {
   public async findAll(): Promise<DefaultInterface[]> {
-    return DefaultModel;
+    const data: DefaultInterface[] = await DefaultModel.find();
+
+    return data;
   }
 
   public async create(data: DefaultInterface): Promise<DefaultInterface> {
     const { name } = data;
-    const findData = DefaultModel.find(item => item.name === name);
+    const findData = await DefaultModel.findOne({ name });
 
     if (findData) {
       throw new HttpException(400, `This name ${name} already exists`);
     }
 
-    return {
+    const createUserData: DefaultInterface = await DefaultModel.create({
       ...data,
-      _id: (DefaultModel.length + 1).toString(),
-      registered: Date.now().toLocaleString(),
-    };
+    });
+
+    return createUserData;
   }
 }
