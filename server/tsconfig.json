@@ -24,7 +24,6 @@
     "paths": {
       "@app/*": ["src/*"],
       "@configs/*": ["src/configs/*"],
-      "@core/*": ["src/core/*"],
       "@controllers/*": ["src/controllers/*"],
       "@types/*": ["src/types/*"],
       "@middlewares/*": ["src/middlewares/*"],

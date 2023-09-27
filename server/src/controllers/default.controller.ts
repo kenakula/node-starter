@@ -11,7 +11,7 @@ export class DefaultController {
   public service = Container.get(DefaultService);
 
   public getData = async (
-    req: Request,
+    _req: Request,
     res: Response<IResponseBody<DefaultInterface[]>>,
     next: NextFunction,
   ): Promise<void> => {

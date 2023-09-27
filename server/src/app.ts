@@ -72,6 +72,10 @@ export class App {
     await connectDatabase();
   };
 
+  public getServer(): express.Application {
+    return this.app;
+  }
+
   private initializeMiddlewares() {
     this.app.use(API_ROOT, this.limiter);
     this.app.use(morgan(LOG_FORMAT, { stream }));
