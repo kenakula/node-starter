@@ -23,14 +23,7 @@
     "baseUrl": ".",
     "paths": {
       "@app/*": ["src/*"],
-      "@configs/*": ["src/configs/*"],
-      "@controllers/*": ["src/controllers/*"],
-      "@types/*": ["src/types/*"],
-      "@middlewares/*": ["src/middlewares/*"],
-      "@models/*": ["src/models/*"],
-      "@routes/*": ["src/routes/*"],
-      "@services/*": ["src/services/*"],
-      "@utils/*": ["src/utils/*"]
+      "@shared/*": ["src/shared/*"]
     }
   },
   "$schema": "https://json.schemastore.org/tsconfig",

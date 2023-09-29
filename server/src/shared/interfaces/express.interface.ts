@@ -1,12 +1,18 @@
-import { Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
+
+export interface Route {
+  path?: string;
+  router: Router;
+}
+
+export type TResponse<T> = Response<IResponseBody<T>>;
 
 export interface IResponseBody<T> {
   data?: T;
   status: 'success' | 'error';
   message?: string;
+  count?: number;
 }
-
-export type TResponse<T> = Response<IResponseBody<T>>;
 
 export interface ICreateRequest<T, P = {}> extends Request<P> {
   body: T;

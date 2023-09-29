@@ -1,7 +1,8 @@
 import { Service } from 'typedi';
-import { IUser } from '@app/interfaces';
-import { UserModel } from '@models/user.model';
+import { IUser } from '@shared/interfaces';
+import { UserModel } from '@app/models';
 import { HttpException } from '@app/exceptions';
+import { HttpStatusCode } from '@shared/enums';
 
 @Service()
 export class UserService {
@@ -30,7 +31,10 @@ export class UserService {
     });
 
     if (!user) {
-      throw new HttpException(404, 'no user found to update');
+      throw new HttpException(
+        HttpStatusCode.NOT_FOUND,
+        'No user found to update',
+      );
     }
 
     return user;
@@ -40,7 +44,10 @@ export class UserService {
     const user = await UserModel.findByIdAndRemove(id);
 
     if (!user) {
-      throw new HttpException(404, 'no user found to update');
+      throw new HttpException(
+        HttpStatusCode.NOT_FOUND,
+        'No user found to delete',
+      );
     }
   }
 }

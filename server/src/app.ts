@@ -1,32 +1,39 @@
+import * as path from 'path';
 import express from 'express';
+import { Container } from 'typedi';
 import process from 'node:process';
 import morgan from 'morgan';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
-import swaggerJSDoc, { Options as SwaggerOptions } from 'swagger-jsdoc';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
+import swaggerJSDoc from 'swagger-jsdoc';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import cors from 'cors';
 import mongoSanitize from 'express-mongo-sanitize';
-import { logger, stream } from '@app/utils';
+import { logger, stream } from '@shared/utils';
 import {
-  NODE_ENV,
-  PORT,
-  LOG_FORMAT,
-  ORIGIN,
-  CREDENTIALS,
-  rateLimiterConfig,
-  API_VERSION,
   API_ROOT,
+  API_VERSION,
+  BODY_LIMIT,
+  CREDENTIALS,
   hppOptionsConfig,
+  LOG_FORMAT,
+  NODE_ENV,
+  ORIGIN,
+  PORT,
+  PUBLIC_FOLDER,
+  rateLimiterConfig,
+  swaggerConfig,
+  URL_LIMIT,
 } from '@app/configs';
-import { IProcessError, Route } from '@app/interfaces';
-import { connectDatabase } from '@app/database/connect.database';
-import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
-import * as path from 'path';
+import { IProcessError, Route } from '@shared/interfaces';
+import { connectDatabase } from '@app/database';
 import { ErrorMiddleware } from '@app/middlewares';
 import { HttpException } from '@app/exceptions';
+import { EmailService } from '@app/services';
+import { HttpStatusCode } from '@shared/enums';
 
 export class App {
   public app: express.Application;
@@ -35,6 +42,7 @@ export class App {
   public apiVersion: string;
   public apiRoot: string;
   public limiter: RateLimitRequestHandler;
+  public emailService = Container.get(EmailService);
 
   constructor(routes: Route[]) {
     this.app = express();
@@ -49,6 +57,8 @@ export class App {
     this.initializeRoutes(routes);
     this.initializeSwagger();
     this.initializeErrorHandler();
+
+    this.initializeEmailService();
   }
 
   public listen() {
@@ -83,10 +93,10 @@ export class App {
     this.app.use(hpp(hppOptionsConfig));
     this.app.use(helmet());
     this.app.use(compression());
-    this.app.use(express.json({ limit: '10kb' }));
-    this.app.use(express.urlencoded({ extended: true, limit: '1kb' }));
+    this.app.use(express.json({ limit: BODY_LIMIT }));
+    this.app.use(express.urlencoded({ extended: true, limit: URL_LIMIT }));
     this.app.use(mongoSanitize());
-    this.app.use(express.static(path.join(__dirname, 'public')));
+    this.app.use(express.static(path.join(__dirname, PUBLIC_FOLDER)));
     this.app.use(cookieParser());
   }
 
@@ -96,28 +106,21 @@ export class App {
     );
 
     this.app.use(async (_req, _res, next) => {
-      next(new HttpException(404, 'no such route'));
+      next(new HttpException(HttpStatusCode.NOT_FOUND, 'No such route'));
     });
   }
 
   private initializeSwagger() {
-    const options: SwaggerOptions = {
-      swaggerDefinition: {
-        info: {
-          title: 'REST API',
-          description: 'NodeJS API',
-          version: '1.0.0',
-        },
-      },
-      apis: ['swagger.yaml'],
-    };
-
-    const specs = swaggerJSDoc(options);
+    const specs = swaggerJSDoc(swaggerConfig);
 
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
   }
 
-  private initializeErrorHandler() {
+  private initializeErrorHandler(): void {
     this.app.use(ErrorMiddleware);
+  }
+
+  private initializeEmailService(): void {
+    this.emailService.init();
   }
 }

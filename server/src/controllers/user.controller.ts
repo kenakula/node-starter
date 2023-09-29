@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { UserService } from '@app/services';
 import {
@@ -5,25 +6,24 @@ import {
   IPatchRequest,
   IUser,
   TResponse,
-} from '@app/interfaces';
-import { NextFunction, Request, Response } from 'express';
+} from '@shared/interfaces';
 
 export class UserController {
   public service: UserService = Container.get(UserService);
 
-  public async getUsers(
+  public getUsers = async (
     _req: Request,
     res: TResponse<IUser[]>,
     next: NextFunction,
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const data: IUser[] = await this.service.getUsers();
 
-      res.status(200).json({ data, status: 'success' });
+      res.status(200).json({ data, status: 'success', count: data.length });
     } catch (err) {
       next(err);
     }
-  }
+  };
 
   public getUser = async (
     req: Request<{ id: string }>,

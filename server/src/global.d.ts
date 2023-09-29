@@ -5,7 +5,12 @@ declare namespace NodeJS {
     NODE_ENV: TNodeEnv;
     PORT: string;
     HOST: string;
-    SECRET_KEY: string;
+    JWT_SECRET_KEY: string;
+    JWT_EXPIRES_IN: string;
+    JWT_COOKIE_EXPIRES_DAYS: string;
+    JWT_REFRESH_SECRET: string;
+    JWT_REFRESH_EXPIRES_IN: string;
+    PASSWORD_HASH_SALT: string;
     LOG_FORMAT: string;
     LOG_DIR: string;
     ORIGIN: string;
@@ -21,5 +26,8 @@ declare namespace NodeJS {
     EMAIL_PORT: string;
     EMAIL_USERNAME: string;
     EMAIL_PASSWORD: string;
+    BODY_LIMIT: string;
+    URL_LIMIT: string;
+    PUBLIC_FOLDER: string;
   }
 }
