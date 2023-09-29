@@ -20,17 +20,14 @@ export class AuthController {
     try {
       const { user, refreshToken, authToken } = await this.service.signUp(body);
 
-      return res
-        .status(201)
-        .json({
-          data: {
-            user,
-            refreshToken,
-          },
-          status: 'success',
-          message: 'signed up successfully',
-        })
-        .cookie('ns-AuthToken', authToken, authCookieConfig);
+      res.status(201).cookie('ns-AuthToken', authToken, authCookieConfig).json({
+        data: {
+          user,
+          refreshToken,
+        },
+        status: 'success',
+        message: 'signed up successfully',
+      });
     } catch (err) {
       next(err);
     }

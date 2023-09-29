@@ -12,7 +12,7 @@ export const ErrorMiddleware = (
     const status: HttpStatusCode = error.status || 500;
     const message: string = error.message || 'Something went wrong';
 
-    res.status(status).json({ message });
+    return res.status(status).json({ message, statusCode: status });
   } catch (error) {
     next(error);
   }

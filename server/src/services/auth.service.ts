@@ -1,6 +1,5 @@
 import { Container, Service } from 'typedi';
 import jwt from 'jsonwebtoken';
-import { hash } from 'bcryptjs';
 import { ISignUp, ISignUpServiceValue } from '@shared/interfaces';
 import { UserModel } from '@app/models';
 import { HttpException } from '@app/exceptions';
@@ -10,7 +9,6 @@ import {
   JWT_REFRESH_EXPIRES_IN,
   JWT_REFRESH_SECRET,
   JWT_SECRET_KEY,
-  PASSWORD_HASH_SALT,
   protocol,
 } from '@app/configs';
 import { HttpStatusCode } from '@shared/enums';
@@ -22,34 +20,37 @@ export class AuthService {
   public signUp = async ({
     email,
     password,
+    passwordConfirm,
   }: ISignUp): Promise<ISignUpServiceValue> => {
-    const user = await UserModel.findOne({ email });
+    const existingUser = await UserModel.findOne({ email });
 
-    if (user) {
+    if (existingUser) {
       throw new HttpException(
         HttpStatusCode.CONFLICT,
         `This email: ${email} already exists`,
       );
     }
 
-    const hashedPassword = await hash(password, PASSWORD_HASH_SALT);
     const newUser = await UserModel.create({
       email,
-      password: hashedPassword,
+      password,
+      passwordConfirm,
     });
 
     const token = newUser.createEmailConfirmToken();
     await newUser.save({ validateBeforeSave: false });
 
-    const { email: userEmail, _id } = newUser;
+    const { email: userEmail, id } = newUser;
 
     await this.sendEmail(token, userEmail);
 
-    const authToken = this.issueAuthToken(_id.toString());
-    const refreshToken = this.issueRefreshToken(_id.toString());
+    const authToken = this.issueAuthToken(id.toString());
+    const refreshToken = this.issueRefreshToken(id.toString());
+
+    const user = await UserModel.findById(id);
 
     return {
-      user: newUser,
+      user,
       authToken,
       refreshToken,
     };
