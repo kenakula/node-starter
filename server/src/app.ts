@@ -1,4 +1,4 @@
-import express, { Request } from 'express';
+import express from 'express';
 import process from 'node:process';
 import morgan from 'morgan';
 import compression from 'compression';
@@ -21,7 +21,7 @@ import {
   API_ROOT,
   hppOptionsConfig,
 } from '@app/configs';
-import { IProcessError, IResponseBody, Route } from '@app/interfaces';
+import { IProcessError, Route } from '@app/interfaces';
 import { connectDatabase } from '@app/database/connect.database';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import * as path from 'path';
