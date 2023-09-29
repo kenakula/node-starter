@@ -1,20 +1,18 @@
-import { Request, Response } from 'express';
-import { IGlobalError } from '@app/interfaces';
-import { getDbError, sendDevError, sendProdError } from '@utils/errors';
+import { NextFunction, Request, Response } from 'express';
+import { HttpException } from '@app/exceptions';
 
 export const ErrorMiddleware = (
-  error: IGlobalError,
+  error: HttpException,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
-  const errorStatusCode = error.status || 500;
-  const err: IGlobalError = { ...error, errorStatusCode };
-  const isDev = process.env.NODE_ENV === 'development';
+  try {
+    const status: number = error.status || 500;
+    const message: string = error.message || 'Something went wrong';
 
-  if (isDev) {
-    sendDevError(err, req, res);
-  } else {
-    const enhancedError: IGlobalError = { ...err, message: getDbError(error) };
-    sendProdError(enhancedError, req, res);
+    res.status(status).json({ message });
+  } catch (error) {
+    next(error);
   }
 };

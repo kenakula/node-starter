@@ -1,9 +1,9 @@
 import 'reflect-metadata';
 import { App } from './app';
-import { DefaultRoute } from '@app/routes';
+import { UserRoute } from '@app/routes';
 import process from 'node:process';
 
-const app = new App([new DefaultRoute()]);
+const app = new App([new UserRoute()]);
 
 process.on('uncaughtException', err => {
   console.log('UNCAUGHT EXCEPTION 💥 SHUTTING DOWN...');

@@ -19,13 +19,13 @@ import {
   rateLimiterConfig,
   API_VERSION,
   API_ROOT,
+  hppOptionsConfig,
 } from '@app/configs';
-import { ErrorMiddleware } from '@app/middlewares';
-import { IProcessError, Route } from '@app/interfaces';
+import { IProcessError, IResponseBody, Route } from '@app/interfaces';
 import { connectDatabase } from '@app/database/connect.database';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
-import { hppOptionsConfig } from '@configs/hpp-options.config';
 import * as path from 'path';
+import { ErrorMiddleware } from '@app/middlewares';
 import { HttpException } from '@app/exceptions';
 
 export class App {
@@ -95,8 +95,8 @@ export class App {
       this.app.use(`${API_ROOT}/${this.apiVersion}/`, route.router),
     );
 
-    this.app.all('*', ({ originalUrl }: Request, res, next) => {
-      next(new HttpException(404, `no [${originalUrl}] route on server`));
+    this.app.use(async (_req, _res, next) => {
+      next(new HttpException(404, 'no such route'));
     });
   }
 

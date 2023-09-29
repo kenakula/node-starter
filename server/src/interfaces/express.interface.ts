@@ -1,9 +1,12 @@
-import { Request } from 'express';
+import { Request, Response } from 'express';
 
 export interface IResponseBody<T> {
-  data: T;
-  message: string;
+  data?: T;
+  status: 'success' | 'error';
+  message?: string;
 }
+
+export type TResponse<T> = Response<IResponseBody<T>>;
 
 export interface ICreateRequest<T> extends Request {
   body: T;
