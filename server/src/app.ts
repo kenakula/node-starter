@@ -55,7 +55,7 @@ export class App {
     const server = this.app.listen(this.port, () => {
       logger.info(`=================================`);
       logger.info(`======= ENV: ${this.env} =======`);
-      logger.info(`🚀 App listening on the port: ${this.port}`);
+      logger.info(`App listening on the port: ${this.port} 🚀 `);
       logger.info(`=================================`);
     });
 

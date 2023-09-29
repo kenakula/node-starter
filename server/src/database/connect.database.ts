@@ -1,19 +1,16 @@
 import { connect, set } from 'mongoose';
-import { DB_HOST, DB_PASSWORD, DB_USER, NODE_ENV, DB_PORT } from '@app/configs';
+import { DB_HOST, NODE_ENV, DB_PORT } from '@app/configs';
 
 export const connectDatabase = async () => {
   if (NODE_ENV !== 'production') {
     set('debug', true);
   }
 
-  await connect(`mongodb://mongo:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}`, {
-    user: DB_USER,
-    pass: DB_PASSWORD,
-  })
+  await connect(`mongodb://${DB_HOST}:${DB_PORT}`)
     .then(() => {
-      console.log('Connection to DB established 🤩');
+      console.log('Connection to DB established');
     })
-    .catch(() => {
-      console.log('Connection to DB failed 😵‍💫');
+    .catch(err => {
+      console.log(`Connection to DB failed: ${err}`);
     });
 };
