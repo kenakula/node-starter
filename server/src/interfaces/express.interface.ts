@@ -8,8 +8,14 @@ export interface IResponseBody<T> {
 
 export type TResponse<T> = Response<IResponseBody<T>>;
 
-export interface ICreateRequest<T> extends Request {
+export interface ICreateRequest<T, P = {}> extends Request<P> {
   body: T;
+  params: P;
+}
+
+export interface IPatchRequest<T, P = {}> extends Request<P> {
+  body: Partial<T>;
+  params: P;
 }
 
 export interface IProcessError {
