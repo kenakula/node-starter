@@ -17,7 +17,7 @@ const logFormat = winston.format.printf(
 const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss',
+      format: 'DD-MM-YYY HH:mm:ss',
     }),
     logFormat,
   ),

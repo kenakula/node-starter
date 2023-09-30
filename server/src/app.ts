@@ -7,7 +7,6 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
-import swaggerJSDoc from 'swagger-jsdoc';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import cors from 'cors';
@@ -25,7 +24,6 @@ import {
   PORT,
   PUBLIC_FOLDER,
   rateLimiterConfig,
-  swaggerConfig,
   URL_LIMIT,
 } from '@app/configs';
 import { IProcessError, Route } from '@shared/interfaces';
@@ -34,6 +32,7 @@ import { ErrorMiddleware } from '@app/middlewares';
 import { HttpException } from '@app/exceptions';
 import { EmailService } from '@app/services';
 import { HttpStatusCode } from '@shared/enums';
+import YAML from 'yamljs';
 
 export class App {
   public app: express.Application;
@@ -104,20 +103,20 @@ export class App {
     routes.forEach(route =>
       this.app.use(`${API_ROOT}/${this.apiVersion}/`, route.router),
     );
-
-    this.app.use(async (_req, _res, next) => {
-      next(new HttpException(HttpStatusCode.NOT_FOUND, 'No such route'));
-    });
   }
 
   private initializeSwagger() {
-    const specs = swaggerJSDoc(swaggerConfig);
+    const specs = YAML.load('swagger.yaml');
 
     this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
   }
 
   private initializeErrorHandler(): void {
     this.app.use(ErrorMiddleware);
+
+    this.app.use(async (_req, _res, next) => {
+      next(new HttpException(HttpStatusCode.NOT_FOUND, 'No such route'));
+    });
   }
 
   private initializeEmailService(): void {

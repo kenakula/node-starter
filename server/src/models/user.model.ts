@@ -45,7 +45,10 @@ const userSchema: Schema<IUser, TUserModel, IUserSchemaMethods> = new Schema(
       },
       default: 'user',
     },
-    emailConfirmToken: String,
+    emailConfirmToken: {
+      type: String,
+      select: false,
+    },
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
