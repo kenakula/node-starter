@@ -1,6 +1,11 @@
 import { Container, Service } from 'typedi';
-import jwt from 'jsonwebtoken';
-import { ISignUp, ISignUpServiceValue } from '@shared/interfaces';
+import jwt, { JwtPayload, verify } from 'jsonwebtoken';
+import {
+  IAuthWithoutUser,
+  IAuthWithUser,
+  ISignIn,
+  ISignUp,
+} from '@shared/interfaces';
 import { UserModel } from '@app/models';
 import { HttpException } from '@app/exceptions';
 import {
@@ -12,6 +17,7 @@ import {
   protocol,
 } from '@app/configs';
 import { HttpStatusCode } from '@shared/enums';
+import { verifyToken } from '@shared/utils';
 import { EmailService } from './email.service';
 
 @Service()
@@ -21,7 +27,7 @@ export class AuthService {
     email,
     password,
     passwordConfirm,
-  }: ISignUp): Promise<ISignUpServiceValue> => {
+  }: ISignUp): Promise<IAuthWithUser> => {
     const existingUser = await UserModel.findOne({ email });
 
     if (existingUser) {
@@ -44,17 +50,74 @@ export class AuthService {
 
     await this.sendEmail(token, userEmail);
 
-    const authToken = this.issueAuthToken(id.toString());
-    const refreshToken = this.issueRefreshToken(id.toString());
-
     const user = await UserModel.findById(id);
 
     return {
       user,
-      authToken,
-      refreshToken,
+      ...this.getTokens(user.id),
     };
   };
+
+  public signIn = async ({
+    email,
+    password,
+  }: ISignIn): Promise<IAuthWithoutUser> => {
+    const user = await UserModel.findOne({ email }).select('+password');
+
+    if (!user) {
+      throw new HttpException(
+        HttpStatusCode.NOT_FOUND,
+        'Email or password are not correct',
+      );
+    }
+
+    const isPasswordCorrect = await user.isPasswordCorrect(
+      password,
+      user.password,
+    );
+
+    if (!isPasswordCorrect) {
+      throw new HttpException(
+        HttpStatusCode.FORBIDDEN,
+        'Email or password are not correct',
+      );
+    }
+
+    return this.getTokens(user.id);
+  };
+
+  public refreshToken = async (token: string): Promise<IAuthWithoutUser> => {
+    try {
+      const decoded = await verifyToken(token, JWT_REFRESH_SECRET);
+
+      const user = await UserModel.findById(decoded.id);
+
+      if (!user) {
+        throw new HttpException(HttpStatusCode.UNAUTHORIZED, 'User not found');
+      }
+
+      const passwordChanged = user.changedPasswordAfter(decoded.iat);
+
+      if (passwordChanged) {
+        throw new HttpException(
+          HttpStatusCode.UNAUTHORIZED,
+          'Password changed after last login, please login again',
+        );
+      }
+
+      return this.getTokens(user.id);
+    } catch (err) {
+      throw new HttpException(
+        HttpStatusCode.UNAUTHORIZED,
+        'You are not signed in. Please log in',
+      );
+    }
+  };
+
+  private getTokens = (id: string): IAuthWithoutUser => ({
+    refreshToken: this.issueRefreshToken(id),
+    authToken: this.issueAuthToken(id),
+  });
 
   private issueAuthToken(id: string): string {
     return jwt.sign({ id }, JWT_SECRET_KEY, { expiresIn: JWT_EXPIRES_IN });

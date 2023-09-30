@@ -28,7 +28,7 @@ import {
 } from '@app/configs';
 import { IProcessError, Route } from '@shared/interfaces';
 import { connectDatabase } from '@app/database';
-import { ErrorMiddleware } from '@app/middlewares';
+import { errorMiddleware } from '@app/middlewares';
 import { HttpException } from '@app/exceptions';
 import { EmailService } from '@app/services';
 import { HttpStatusCode } from '@shared/enums';
@@ -112,7 +112,7 @@ export class App {
   }
 
   private initializeErrorHandler(): void {
-    this.app.use(ErrorMiddleware);
+    this.app.use(errorMiddleware);
 
     this.app.use(async (_req, _res, next) => {
       next(new HttpException(HttpStatusCode.NOT_FOUND, 'No such route'));

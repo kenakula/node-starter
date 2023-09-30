@@ -12,5 +12,7 @@ export class AuthRoute {
 
   public initializeRoutes() {
     this.router.post(`${this.path}/signup`, this.controller.signUp);
+    this.router.post(`${this.path}/login`, this.controller.signIn);
+    this.router.post(`${this.path}/refresh`, this.controller.refreshToken);
   }
 }

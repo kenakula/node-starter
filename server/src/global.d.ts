@@ -10,6 +10,7 @@ declare namespace NodeJS {
     JWT_COOKIE_EXPIRES_DAYS: string;
     JWT_REFRESH_SECRET: string;
     JWT_REFRESH_EXPIRES_IN: string;
+    AUTH_COOKIE_NAME: string;
     PASSWORD_HASH_SALT: string;
     LOG_FORMAT: string;
     LOG_DIR: string;

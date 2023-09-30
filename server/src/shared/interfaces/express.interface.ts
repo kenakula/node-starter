@@ -1,4 +1,5 @@
 import { Request, Response, Router } from 'express';
+import { IUser } from '@shared/interfaces/user.interface';
 
 export interface Route {
   path?: string;
@@ -22,6 +23,10 @@ export interface ICreateRequest<T, P = {}> extends Request<P> {
 export interface IPatchRequest<T, P = {}> extends Request<P> {
   body: Partial<T>;
   params: P;
+}
+
+export interface IProtectRequest extends Request {
+  user: Pick<IUser, 'id' | 'role'>;
 }
 
 export interface IProcessError {

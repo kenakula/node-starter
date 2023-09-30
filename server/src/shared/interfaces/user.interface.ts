@@ -1,6 +1,7 @@
 export type TUserRole = 'user' | 'admin';
 
 export interface IUser {
+  id: string;
   name: string;
   email: string;
   password: string;
@@ -22,21 +23,4 @@ export interface IUserSchemaMethods {
   ) => Promise<boolean>;
   changedPasswordAfter: (timestamp: number) => boolean;
   createPasswordResetToken: () => string;
-}
-
-export interface ISignUp {
-  email: string;
-  password: string;
-  passwordConfirm: string;
-}
-
-export interface ISignUpResponse {
-  user: IUser;
-  refreshToken: string;
-}
-
-export interface ISignUpServiceValue {
-  user: IUser;
-  refreshToken: string;
-  authToken: string;
 }

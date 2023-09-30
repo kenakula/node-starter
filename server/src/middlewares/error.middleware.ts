@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpException } from '@app/exceptions';
 import { HttpStatusCode } from '@shared/enums';
 
-export const ErrorMiddleware = (
+export const errorMiddleware = (
   error: HttpException,
   _req: Request,
   res: Response,
