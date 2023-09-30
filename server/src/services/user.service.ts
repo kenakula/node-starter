@@ -159,7 +159,6 @@ export class UserService {
 
     user.password = password;
     user.passwordConfirm = passwordConfirm;
-    user.passwordChangedAt = new Date();
 
     await user.save();
 

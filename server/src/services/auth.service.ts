@@ -75,6 +75,9 @@ export class AuthService {
       );
     }
 
+    user.passwordChangedAt = undefined;
+    user.save({ validateBeforeSave: false });
+
     return AuthUtils.getTokens(user.id);
   };
 

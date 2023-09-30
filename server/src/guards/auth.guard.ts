@@ -43,7 +43,7 @@ export class AuthGuard {
         return next(
           new HttpException(
             HttpStatusCode.UNAUTHORIZED,
-            'Password was changed after las login. Log in again',
+            'Password was changed after last login. Log in again',
           ),
         );
       }
