@@ -15,6 +15,21 @@ export interface IUser {
   active: boolean;
 }
 
+export interface IForgotPassword {
+  email: string;
+}
+
+export interface IResetPassword {
+  password: string;
+  passwordConfirm: string;
+}
+
+export interface IUpdatePassword {
+  password: string;
+  passwordConfirm: string;
+  currentPassword: string;
+}
+
 export interface IUserSchemaMethods {
   createEmailConfirmToken: () => string;
   isPasswordCorrect: (

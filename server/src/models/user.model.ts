@@ -121,6 +121,7 @@ userSchema.pre('save', function (next) {
   }
 
   this.passwordChangedAt = new Date();
+  next();
 });
 
 export const UserModel = model<IUser & Document, TUserModel>(

@@ -1,5 +1,4 @@
 import { Container, Service } from 'typedi';
-import jwt, { JwtPayload, verify } from 'jsonwebtoken';
 import {
   IAuthWithoutUser,
   IAuthWithUser,
@@ -8,16 +7,9 @@ import {
 } from '@shared/interfaces';
 import { UserModel } from '@app/models';
 import { HttpException } from '@app/exceptions';
-import {
-  apiUrl,
-  JWT_EXPIRES_IN,
-  JWT_REFRESH_EXPIRES_IN,
-  JWT_REFRESH_SECRET,
-  JWT_SECRET_KEY,
-  protocol,
-} from '@app/configs';
+import { JWT_REFRESH_SECRET } from '@app/configs';
 import { HttpStatusCode } from '@shared/enums';
-import { verifyToken } from '@shared/utils';
+import { AuthUtils, verifyToken } from '@shared/utils';
 import { EmailService } from './email.service';
 
 @Service()
@@ -48,13 +40,13 @@ export class AuthService {
 
     const { email: userEmail, id } = newUser;
 
-    await this.sendEmail(token, userEmail);
+    await this.emailService.sendEmailConfirm(token, userEmail);
 
     const user = await UserModel.findById(id);
 
     return {
       user,
-      ...this.getTokens(user.id),
+      ...AuthUtils.getTokens(user.id),
     };
   };
 
@@ -83,7 +75,7 @@ export class AuthService {
       );
     }
 
-    return this.getTokens(user.id);
+    return AuthUtils.getTokens(user.id);
   };
 
   public refreshToken = async (token: string): Promise<IAuthWithoutUser> => {
@@ -105,7 +97,7 @@ export class AuthService {
         );
       }
 
-      return this.getTokens(user.id);
+      return AuthUtils.getTokens(user.id);
     } catch (err) {
       throw new HttpException(
         HttpStatusCode.UNAUTHORIZED,
@@ -113,37 +105,4 @@ export class AuthService {
       );
     }
   };
-
-  private getTokens = (id: string): IAuthWithoutUser => ({
-    refreshToken: this.issueRefreshToken(id),
-    authToken: this.issueAuthToken(id),
-  });
-
-  private issueAuthToken(id: string): string {
-    return jwt.sign({ id }, JWT_SECRET_KEY, { expiresIn: JWT_EXPIRES_IN });
-  }
-
-  private issueRefreshToken(id: string): string {
-    return jwt.sign({ id }, JWT_REFRESH_SECRET, {
-      expiresIn: JWT_REFRESH_EXPIRES_IN,
-    });
-  }
-
-  private async sendEmail(token: string, email: string): Promise<void> {
-    const confirmUrl = `${protocol}://${apiUrl}/users/confirm-email/${token}`;
-    const message = `To confirm your email follow the link. ${confirmUrl}`;
-
-    try {
-      await this.emailService.send({
-        to: email,
-        subject: 'Node Starter. Verify your email',
-        text: message,
-      });
-    } catch (err) {
-      throw new HttpException(
-        HttpStatusCode.INTERNAL_SERVER_ERROR,
-        'There was an error sending an email. Try again later',
-      );
-    }
-  }
 }
