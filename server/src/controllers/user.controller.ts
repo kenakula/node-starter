@@ -1,11 +1,11 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request } from 'express';
 import { Container } from 'typedi';
 import { UserService } from '@app/services';
 import {
-  ICreateRequest,
+  IAppRequest,
   IForgotPassword,
-  IPatchRequest,
   IResetPassword,
+  ISafeUser,
   IUpdatePassword,
   IUser,
   TResponse,
@@ -23,20 +23,23 @@ export class UserController {
     try {
       const data: IUser[] = await this.service.getUsers();
 
-      res
-        .status(HttpStatusCode.OK)
-        .json({ data, status: 'success', count: data.length });
+      res.status(HttpStatusCode.OK).json({
+        data,
+        status: 'success',
+        statusCode: HttpStatusCode.OK,
+        count: data.length,
+      });
     } catch (err) {
       next(err);
     }
   };
 
   public getUser = async (
-    req: Request<{ id: string }>,
+    { params }: IAppRequest<{}, { id: string }>,
     res: TResponse<IUser>,
     next: NextFunction,
   ) => {
-    const id = req.params.id;
+    const id = params.id;
 
     try {
       const data: IUser = await this.service.getUser(id);
@@ -45,12 +48,14 @@ export class UserController {
         return res.status(HttpStatusCode.NOT_FOUND).json({
           message: 'no user found',
           status: 'error',
+          statusCode: HttpStatusCode.NOT_FOUND,
         });
       }
 
       return res.status(HttpStatusCode.OK).json({
         data,
         status: 'success',
+        statusCode: HttpStatusCode.OK,
       });
     } catch (err) {
       next(err);
@@ -58,7 +63,7 @@ export class UserController {
   };
 
   public updateUser = async (
-    { body, params }: IPatchRequest<IUser, { id: string }>,
+    { body, params }: IAppRequest<IUser, { id: string }>,
     res: TResponse<IUser>,
     next: NextFunction,
   ) => {
@@ -70,6 +75,7 @@ export class UserController {
       return res.status(HttpStatusCode.ACCEPTED).json({
         data,
         status: 'success',
+        statusCode: HttpStatusCode.ACCEPTED,
       });
     } catch (err) {
       next(err);
@@ -77,8 +83,8 @@ export class UserController {
   };
 
   public deleteUser = async (
-    { params }: IPatchRequest<{}, { id: string }>,
-    res: Response,
+    { params }: IAppRequest<{}, { id: string }>,
+    res: TResponse<null>,
     next: NextFunction,
   ) => {
     const id = params.id;
@@ -89,6 +95,7 @@ export class UserController {
       return res.status(HttpStatusCode.ACCEPTED).json({
         message: 'user removed successfully',
         status: 'success',
+        statusCode: HttpStatusCode.ACCEPTED,
       });
     } catch (err) {
       next(err);
@@ -96,31 +103,33 @@ export class UserController {
   };
 
   public createUser = async (
-    { body }: ICreateRequest<IUser>,
-    res: TResponse<IUser>,
+    { body }: IAppRequest<IUser>,
+    res: TResponse<ISafeUser>,
     next: NextFunction,
   ): Promise<void> => {
     try {
       const data = await this.service.createUser(body);
 
-      res.status(HttpStatusCode.CREATED).json({ data, status: 'success' });
+      res
+        .status(HttpStatusCode.CREATED)
+        .json({ data, status: 'success', statusCode: HttpStatusCode.CREATED });
     } catch (err) {
       next(err);
     }
   };
 
   public forgotPassword = async (
-    { body: { email } }: ICreateRequest<IForgotPassword>,
-    res: TResponse<void>,
+    { body: { email } }: IAppRequest<IForgotPassword>,
+    res: TResponse<null>,
     next: NextFunction,
   ): Promise<void> => {
     try {
       await this.service.forgotPassword({ email });
 
       res.status(HttpStatusCode.OK).json({
-        data: undefined,
         status: 'success',
-        message: 'confirm email send',
+        message: 'email to reset password sent',
+        statusCode: HttpStatusCode.OK,
       });
     } catch (err) {
       next(err);
@@ -131,25 +140,17 @@ export class UserController {
     {
       params: { token },
       body: { password, passwordConfirm },
-    }: ICreateRequest<IResetPassword, { token: string }>,
-    res: TResponse<void>,
+    }: IAppRequest<IResetPassword, { token: string }>,
+    res: TResponse<null>,
     next: NextFunction,
   ) => {
     try {
-      if (!password || !passwordConfirm) {
-        return res.status(HttpStatusCode.BAD_REQUEST).json({
-          data: undefined,
-          message: 'No new password and passwordConfirm sent',
-          status: 'error',
-        });
-      }
-
       await this.service.resetPassword({ passwordConfirm, password }, token);
 
       res.status(HttpStatusCode.OK).json({
-        data: undefined,
         status: 'success',
         message: 'password was reset',
+        statusCode: HttpStatusCode.OK,
       });
     } catch (err) {
       next(err);
@@ -157,17 +158,17 @@ export class UserController {
   };
 
   public confirmEmail = async (
-    { params: { token } }: Request<{ token: string }>,
-    res: TResponse<void>,
+    { params: { token } }: IAppRequest<{}, { token: string }>,
+    res: TResponse<null>,
     next: NextFunction,
   ) => {
     try {
       await this.service.confirmEmail(token);
 
       res.status(HttpStatusCode.OK).json({
-        data: undefined,
         status: 'success',
         message: 'email confirmed',
+        statusCode: HttpStatusCode.OK,
       });
     } catch (err) {
       next(err);
@@ -175,28 +176,25 @@ export class UserController {
   };
 
   public updatePassword = async (
-    {
-      params: { token },
-      body,
-    }: ICreateRequest<IUpdatePassword, { token: string }>,
-    res: TResponse<void>,
+    { params: { id }, body }: IAppRequest<IUpdatePassword, { id: string }>,
+    res: TResponse<null>,
     next: NextFunction,
   ) => {
     try {
       if (!body) {
         return res.status(HttpStatusCode.BAD_REQUEST).json({
-          data: undefined,
           message: 'No new password or currentPassword or passwordConfirm sent',
           status: 'error',
+          statusCode: HttpStatusCode.BAD_REQUEST,
         });
       }
 
-      await this.service.updatePassword(body, token);
+      await this.service.updatePassword(body, id);
 
       res.status(HttpStatusCode.OK).json({
-        data: undefined,
         status: 'success',
         message: 'password was changed',
+        statusCode: HttpStatusCode.OK,
       });
     } catch (err) {
       next(err);

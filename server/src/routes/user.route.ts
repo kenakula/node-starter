@@ -12,7 +12,14 @@ export class UserRoute {
   }
 
   public initializeRoutes() {
-    this.router.get(this.path, this.controller.getUsers);
+    this.router.get(this.path, AuthGuard.protect, this.controller.getUsers);
+
+    this.router.get(
+      `${this.path}/:id`,
+      AuthGuard.protect,
+      AuthGuard.restrict(['admin']),
+      this.controller.getUser,
+    );
 
     this.router.post(
       this.path,
@@ -21,15 +28,10 @@ export class UserRoute {
       this.controller.createUser,
     );
 
-    this.router.get(
-      `${this.path}/:id`,
-      AuthGuard.protect,
-      this.controller.getUser,
-    );
-
     this.router.patch(
       `${this.path}/:id`,
       AuthGuard.protect,
+      AuthGuard.protectUpdateUser,
       this.controller.updateUser,
     );
 
@@ -42,13 +44,7 @@ export class UserRoute {
 
     this.router.post(
       `${this.path}/forgot-password`,
-      AuthGuard.protect,
       this.controller.forgotPassword,
-    );
-    this.router.get(
-      `${this.path}/confirm-email/:token`,
-      AuthGuard.protect,
-      this.controller.confirmEmail,
     );
 
     this.router.get(
@@ -56,9 +52,16 @@ export class UserRoute {
       this.controller.resetPassword,
     );
 
+    this.router.get(
+      `${this.path}/confirm-email/:token`,
+      AuthGuard.protect,
+      this.controller.confirmEmail,
+    );
+
     this.router.post(
       `${this.path}/update-password/:id`,
       AuthGuard.protect,
+      AuthGuard.isSameUser,
       this.controller.updatePassword,
     );
   }

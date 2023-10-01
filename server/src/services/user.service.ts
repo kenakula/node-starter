@@ -3,6 +3,7 @@ import {
   IAuthWithoutUser,
   IForgotPassword,
   IResetPassword,
+  ISafeUser,
   IUpdatePassword,
   IUser,
 } from '@shared/interfaces';
@@ -12,6 +13,7 @@ import { HttpStatusCode } from '@shared/enums';
 import { EmailService } from '@app/services/email.service';
 import crypto from 'crypto';
 import { AuthUtils } from '@shared/utils';
+import { UserUtils } from '@shared/utils/user.utils';
 
 @Service()
 export class UserService {
@@ -29,7 +31,7 @@ export class UserService {
     return data;
   }
 
-  public async createUser(data: IUser): Promise<IUser> {
+  public async createUser(data: IUser): Promise<ISafeUser> {
     const user = await UserModel.findOne({ email: data.email });
 
     if (user) {
@@ -45,9 +47,7 @@ export class UserService {
     await this.emailService.sendEmailConfirm(token, newUser.email);
     await newUser.save({ validateBeforeSave: false });
 
-    // TODO exclude password and emailConfirmToken from response
-
-    return newUser;
+    return UserUtils.normalizeToSafeUser(newUser);
   }
 
   public async updateUser(id: string, patch: Partial<IUser>): Promise<IUser> {
@@ -99,6 +99,20 @@ export class UserService {
     { password: newPassword, passwordConfirm }: IResetPassword,
     token: string,
   ) => {
+    if (!newPassword || !passwordConfirm) {
+      throw new HttpException(
+        HttpStatusCode.BAD_REQUEST,
+        'No new password and passwordConfirm sent',
+      );
+    }
+
+    if (newPassword !== passwordConfirm) {
+      throw new HttpException(
+        HttpStatusCode.BAD_REQUEST,
+        'Passwords do not match',
+      );
+    }
+
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await UserModel.findOne({

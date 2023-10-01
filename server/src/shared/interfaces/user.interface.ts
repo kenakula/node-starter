@@ -15,6 +15,17 @@ export interface IUser {
   active: boolean;
 }
 
+export type ISafeUser = Omit<
+  IUser,
+  | 'password'
+  | 'passwordConfirm'
+  | 'emailConfirmToken'
+  | 'passwordChangedAt'
+  | 'passwordResetToken'
+  | 'passwordResetExpires'
+  | 'active'
+>;
+
 export interface IForgotPassword {
   email: string;
 }

@@ -2,7 +2,7 @@ import { NextFunction } from 'express';
 import { Container } from 'typedi';
 import { AuthService } from '@app/services';
 import {
-  ICreateRequest,
+  IAppRequest,
   IRefreshToken,
   ISignIn,
   ISignInResponse,
@@ -11,12 +11,13 @@ import {
   TResponse,
 } from '@shared/interfaces';
 import { AUTH_COOKIE_NAME, authCookieConfig } from '@app/configs';
+import { HttpStatusCode } from '@shared/enums';
 
 export class AuthController {
   private service = Container.get(AuthService);
 
   public signUp = async (
-    { body }: ICreateRequest<ISignUp>,
+    { body }: IAppRequest<ISignUp>,
     res: TResponse<ISignUpResponse>,
     next: NextFunction,
   ) => {
@@ -24,7 +25,7 @@ export class AuthController {
       const { user, refreshToken, authToken } = await this.service.signUp(body);
 
       res
-        .status(201)
+        .status(HttpStatusCode.CREATED)
         .cookie(AUTH_COOKIE_NAME, authToken, authCookieConfig)
         .json({
           data: {
@@ -33,6 +34,7 @@ export class AuthController {
           },
           status: 'success',
           message: 'signed up successfully',
+          statusCode: HttpStatusCode.CREATED,
         });
     } catch (err) {
       next(err);
@@ -40,7 +42,7 @@ export class AuthController {
   };
 
   public signIn = async (
-    { body }: ICreateRequest<ISignIn>,
+    { body }: IAppRequest<ISignIn>,
     res: TResponse<ISignInResponse>,
     next: NextFunction,
   ) => {
@@ -48,7 +50,7 @@ export class AuthController {
       const { refreshToken, authToken } = await this.service.signIn(body);
 
       res
-        .status(200)
+        .status(HttpStatusCode.OK)
         .cookie(AUTH_COOKIE_NAME, authToken, authCookieConfig)
         .json({
           data: {
@@ -56,6 +58,7 @@ export class AuthController {
           },
           status: 'success',
           message: 'signed in successfully',
+          statusCode: HttpStatusCode.OK,
         });
     } catch (err) {
       next(err);
@@ -63,7 +66,7 @@ export class AuthController {
   };
 
   public refreshToken = async (
-    { body }: ICreateRequest<IRefreshToken>,
+    { body }: IAppRequest<IRefreshToken>,
     res: TResponse<ISignInResponse>,
     next: NextFunction,
   ) => {
@@ -73,7 +76,7 @@ export class AuthController {
       );
 
       res
-        .status(200)
+        .status(HttpStatusCode.OK)
         .cookie(AUTH_COOKIE_NAME, authToken, authCookieConfig)
         .json({
           data: {
@@ -81,6 +84,7 @@ export class AuthController {
           },
           status: 'success',
           message: 'token refreshed successfully',
+          statusCode: HttpStatusCode.OK,
         });
     } catch (err) {
       next(err);
