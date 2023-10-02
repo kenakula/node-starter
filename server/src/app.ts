@@ -11,7 +11,7 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import cors from 'cors';
 import mongoSanitize from 'express-mongo-sanitize';
-import { logger, stream } from '@shared/utils';
+// import { logger, stream } from '@shared/utils';
 import {
   API_ROOT,
   API_VERSION,
@@ -26,13 +26,14 @@ import {
   rateLimiterConfig,
   URL_LIMIT,
 } from '@app/configs';
-import { IProcessError, Route } from '@shared/interfaces';
+import { IProcessError, Route, TResponse } from '@shared/interfaces';
 import { connectDatabase } from '@app/database';
 import { errorMiddleware } from '@app/middlewares';
 import { HttpException } from '@app/exceptions';
 import { EmailService } from '@app/services';
 import { HttpStatusCode } from '@shared/enums';
 import YAML from 'yamljs';
+import { logger, stream } from '@shared/utils';
 
 export class App {
   public app: express.Application;
@@ -58,6 +59,8 @@ export class App {
     this.initializeErrorHandler();
 
     this.initializeEmailService();
+
+    this.handleNotFoundRoute();
   }
 
   public listen() {
@@ -69,8 +72,8 @@ export class App {
     });
 
     process.on('unhandledRejection', (err: IProcessError) => {
-      console.log(err.name, err.message);
-      console.log('UNHANDLED REJECTION 💥 SHUTTING DOWN...');
+      logger.error(err.name, err.message);
+      logger.info('UNHANDLED REJECTION 💥 SHUTTING DOWN...');
       server.close(() => {
         process.exit(1);
       });
@@ -113,13 +116,19 @@ export class App {
 
   private initializeErrorHandler(): void {
     this.app.use(errorMiddleware);
-
-    this.app.use(async (_req, _res, next) => {
-      next(new HttpException(HttpStatusCode.NOT_FOUND, 'No such route'));
-    });
   }
 
   private initializeEmailService(): void {
     this.emailService.init();
+  }
+
+  private handleNotFoundRoute(): void {
+    this.app.use((_req, res: TResponse<null>) => {
+      res.status(HttpStatusCode.NOT_FOUND).json({
+        message: 'Requested endpoint does not exist',
+        status: 'error',
+        statusCode: HttpStatusCode.NOT_FOUND,
+      });
+    });
   }
 }
