@@ -29,7 +29,6 @@ import {
 import { IProcessError, Route, TResponse } from '@shared/interfaces';
 import { connectDatabase } from '@app/database';
 import { errorMiddleware } from '@app/middlewares';
-import { HttpException } from '@app/exceptions';
 import { EmailService } from '@app/services';
 import { HttpStatusCode } from '@shared/enums';
 import YAML from 'yamljs';
