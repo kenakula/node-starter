@@ -1,5 +1,4 @@
 .idea
-node_modules
 .gitignore
 .git
 
@@ -14,5 +13,6 @@ jest.config.js
 # docker
 Dockerfile
 .dockerignore
+docker-compose.yml
 
 src/logs

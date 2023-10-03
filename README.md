@@ -1,6 +1,10 @@
-# Node + React (Vite) starter
+# Node + MongoDB + React (Vite) starter
 
-TODOs
-
-- настрить нормальное логирование
-- доработать сваггер
+### features
+- express with typescript
+- module aliases
+- dependency injection (typedi)
+- authentication and authorization (Cookie JWT) 
+- email sending
+- custom logger
+- swagger documentation
