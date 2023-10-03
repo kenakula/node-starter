@@ -5,10 +5,12 @@ import { App } from './app';
 
 const app = new App([new UserRoute(), new AuthRoute()]);
 
-process.on('uncaughtException', err => {
-  console.log('UNCAUGHT EXCEPTION 💥 SHUTTING DOWN...');
-  console.log(err.name, err.message);
-  process.exitCode = 1;
-});
+app.connectToDatabase().then(() => {
+  app.listen();
 
-app.listen();
+  process.on('uncaughtException', err => {
+    console.log('UNCAUGHT EXCEPTION 💥 SHUTTING DOWN...');
+    console.log(err.name, err.message);
+    process.exitCode = 1;
+  });
+});

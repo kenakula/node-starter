@@ -11,7 +11,6 @@ import helmet from 'helmet';
 import hpp from 'hpp';
 import cors from 'cors';
 import mongoSanitize from 'express-mongo-sanitize';
-// import { logger, stream } from '@shared/utils';
 import {
   API_ROOT,
   API_VERSION,
@@ -51,7 +50,6 @@ export class App {
     this.apiVersion = API_VERSION || 'v1';
     this.limiter = rateLimit(rateLimiterConfig);
 
-    this.connectToDatabase();
     this.initializeMiddlewares();
     this.initializeRoutes(routes);
     this.initializeSwagger();
@@ -80,7 +78,7 @@ export class App {
   }
 
   public connectToDatabase = async () => {
-    await connectDatabase();
+    return connectDatabase();
   };
 
   public getServer(): express.Application {
